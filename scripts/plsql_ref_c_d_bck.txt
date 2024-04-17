@@ -1,0 +1,67 @@
+begin
+dbms_scheduler.create_program
+(
+program_name => 'c_backup_test',
+program_type => 'EXECUTABLE',
+program_action => '/home/oracle/mybackups/scripts/daily_backup_test.sh',
+enabled => TRUE,
+comments => 'backup program'
+);
+end;
+/
+
+begin
+dbms_scheduler.create_schedule
+(
+schedule_name => 'daily_backup',
+repeat_interval => 'FREQ=HOURLY; BYMINUTE=50;',
+comments => 'Every Day Backup'
+);
+end;
+/
+
+begin
+dbms_scheduler.create_job
+(
+job_name => 'backup_test',
+program_name => 'c_backup_test',
+schedule_name => 'daily_backup',
+comments => 'Job runs',
+enabled => TRUE
+);
+end;
+/
+
+##########################
+# simple succsses        #
+##########################
+BEGIN
+  DBMS_SCHEDULER.create_program(
+  program_name => 'plsql_program1',
+  program_type => 'PLSQL_BLOCK',
+  program_action => 'BEGIN DBMS_STATS.gather_schema_stats(''SYS''); END;',
+  enabled => TRUE,
+  comments => 'Program to gather SYS USER statistics');
+  DBMS_SCHEDULER.enable (name=>'plsql_program1');
+END;
+/
+
+BEGIN
+DBMS_SCHEDULER.create_schedule (
+  schedule_name => 'minu_sched',
+  start_date => SYSTIMESTAMP,
+  repeat_interval => 'freq=minutely; interval=1; bysecond=1;',
+  end_date => NULL,
+  comments => 'Run every minute');
+END;
+/
+
+BEGIN
+DBMS_SCHEDULER.create_job (
+  job_name => 'test_user_job',
+  program_name => 'plsql_program1',
+  schedule_name => 'minu_sched',
+  enabled => TRUE,
+  comments => 'My test scheduler job');
+END;
+/
