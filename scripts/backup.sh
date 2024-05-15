@@ -12,6 +12,7 @@ allocate channel ch2 device type disk;
 allocate channel ch3 device type disk;
 allocate channel ch4 device type disk;
 CONFIGURE CHANNEL DEVICE TYPE DISK FORMAT '/home/oracle/mybackups/full_%u';
+CONFIGURE RETENTION POLICY TO RECOVERY WINDOW OF 7 DAYS;
 CONFIGURE DEVICE TYPE DISK BACKUP TYPE TO COMPRESSED BACKUPSET PARALLELISM 4;
 BACKUP AS COMPRESSED BACKUPSET DATABASE PLUS ARCHIVELOG TAG=MY_BACKUP_FULL;
 release channel ch1;
