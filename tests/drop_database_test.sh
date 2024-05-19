@@ -1,18 +1,19 @@
 #! /bin/bash
 
 #regular backup 
+export ORACLE_SID=ORCLCDB
+export ORACLE_HOME=/opt/oracle/product/21c/dbhome_1
+export DATE=$(date +%y-%m-%d_%H%M%S)
+
+#do backup
 ./../scripts/backup.sh
 
 #drop database
 rman target / <<EOF
-DROP DATABASE;
+STARTUP FORCE MOUNT;
+ALTER SYSTEM ENABLE RESTRICTED SESSION;
+DROP DATABASE NOPROMPT;
 quit;
-EOF
-
-sqlplus / as sysdba << EOF
-shutdown immediate;
-startup nomount;
-exit;
 EOF
 
 # Iterate over files in the current directory
@@ -34,12 +35,16 @@ if [[ $index =~ ^[0-9]+$ && $index -ge 0 && $index -lt ${#con_files[@]} ]]; then
 else
     echo "Invalid index. Please enter a valid index within the range of the array."
 fi
+echo $selection
 
 rman target / <<EOF
-restore controlfile from '/opt/oracle/homes/OraDB21Home1/dbs/$selection';
-ALTER DATABASE MOUNT;
+startup force mount;
+restore controlfile from '$selection';
 RESTORE DATABASE;
 RECOVER DATABASE;
-ALTER DATABASE OPEN;
+RESTORE DATABASE VALIDATE;
+VALIDATE DATABASE;
+RECOVER CORRUPTION LIST;
+ALTER DATABASE OPEN RESETLOGS;
 quit;
 EOF
